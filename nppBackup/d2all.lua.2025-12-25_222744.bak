@@ -1,0 +1,46 @@
+_addon.name = 'D2all'
+_addon.author = 'Latravant (Ragnarok)'
+_addon.commands = {'d2all','D2All'}
+_addon.language = 'English'
+
+require('tables')
+require('strings')
+require('logger')
+
+res = require('resources')
+
+
+windower.register_event('addon command', function(command, ...)
+    command = command and command:lower()
+
+    local party = T(windower.ffxi.get_party())
+    local zone = windower.ffxi.get_info().zone
+
+    if command == 'd2all' then	
+		local party = windower.ffxi.get_party()
+			for i = 1,5 do
+				local member = party['p' .. i]
+				if member.mob.id then
+					if member.mob.id == player_id then return true end
+				end
+			end
+			return false
+	end
+		local player = windower.ffxi.get_player()
+		local spell_recasts = windower.ffxi.get_spell_recasts()
+		if player.main_job == 'BLM' or player.sub_job == 'BLM' and spell_recasts[262] < spell_latency then
+			windower.chat.input('/ma "Warp ii" '..player..'') return true
+		else 
+			windower.chat.input(123,'Unable to cast warp:'..player.main_job..'/'..player.sub_job..'')
+			return false
+		end	
+	end	
+end)
+
+windower.register_event('load', function()
+    windower.send_command('alias d2all lua c d2all')
+end)
+
+windower.register_event('unload', function()
+    windower.send_command('unalias d2all')
+end)

@@ -1,0 +1,56 @@
+_addon.name = 'D2all'
+_addon.author = 'Latravant (Ragnarok)'
+_addon.command = 'd2all'
+_addon.language = 'English'
+
+windower.register_event('load','login',function ()
+    if windower.ffxi.get_info().logged_in then
+        log('D2all loaded.')
+        coroutine.schedule(login, 5)
+    end
+end)
+
+windower.register_event('addon command', function(...)
+    command = command and command:lower()
+    local args = {...}
+    if command == 'send' then	
+    local index = 1
+    local names = {}
+    while args[index] ~= 'send' do
+	names[#names+1] = args[index]
+	index = index + 1
+	end
+    
+	index = index + 1
+	local words = {}
+	while args[index] ~= nil do
+		words[#words+1] = args[index]
+		index = index + 1
+	end
+    local message = table.concat(words, ' ')
+	local command_msg = ''
+	for i = 1, #names do
+		command_msg = command_msg..'input /tell '..names[i]..' '..message
+			if i < #names then
+		command_msg = command_msg..'; wait 2; '
+		end
+	end
+	windower.send_command(command_msg) 
+end)
+
+function warp_all(target)
+    local spell_recasts = windower.ffxi.get_spell_recasts()
+	if (player.main_job == 'BLM' or player.sub_job == 'BLM') and spell_recasts[262] < spell_latency then
+		windower.chat.input('/ma "Warp ii" '..names[i]) return true		
+	end
+	
+	return false
+end)
+
+windower.register_event('load', function()
+    windower.send_command('alias d2all lua c d2all')
+end)
+
+windower.register_event('unload', function()
+    windower.send_command('unalias d2all')
+end)

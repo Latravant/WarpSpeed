@@ -1,0 +1,16 @@
+_addon.command = 'd2all'
+
+windower.register_event('addon command', function(...)
+    local spell_recasts = windower.ffxi.get_spell_recasts()
+	if (player.main_job == 'BLM' or player.sub_job == 'BLM') and spell_recasts[262] < spell_latency then
+		windower.chat.input('/ma "Warp ii" '..names[i]) return true		
+	return false
+end)
+
+windower.register_event('load', function()
+    windower.send_command('alias d2all lua c d2all')
+end)
+
+windower.register_event('unload', function()
+    windower.send_command('unalias d2all')
+end)

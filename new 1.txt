@@ -1,0 +1,965 @@
+_addon.name = 'warpspeed'
+_addon.author = 'Latravant (Ragnarok)'
+_addon.command = 'warp9'
+
+local packets = require('packets')
+local tables = require('tables')
+local strings = require('strings')
+local res = require('resources')
+
+local GROUP_TBL = L{
+    {ctype='unsigned int',      label='ID',                 fn=id},
+    {ctype='unsigned short',    label='Index',              fn=index},
+    {ctype='bit[2]',            label='Party Number'},
+    {ctype='bit[1]',            label='Party Leader',       fn=bool},
+    {ctype='bit[1]',            label='Alliance Leader',    fn=bool},
+    {ctype='bit[1]',            label='PartyR Flag'},
+    {ctype='bit[1]',            label='AllianceR Flag'},
+    {ctype='bit[1]',            label='MasterComFlg'},
+    {ctype='bit[1]',            label='SubMasterComFlg'},
+    {ctype='unsigned char',     label='padding00'},
+    {ctype='unsigned short',    label='Zone',               fn=zone},
+    {ctype='unsigned short',    label='_unknown2'},
+}
+
+packets.raw_fields.incoming[0x0C8] = L{
+    {ctype='unsigned char',     label='_unknown1'},                                 -- 04
+    {ctype='data[3]',           label='_junk1'},                                    -- 05
+    {ref=GROUP_TBL,             count=18},                                          -- 08
+    {ctype='data[0x18]',        label='_unknown3'},                                 -- E0   Always 0?
+}
+
+local members = S{}
+local party_index = nil
+
+windower.register_event('incoming chunk', function(id, original)
+	if id ~= 0x0c8 then return false end
+	
+	local parsed = packets.parse('incoming', original)
+	local current = S{}
+	members = T{}
+  
+  -- Build a set of current player IDs.
+	for i = 1, 18 do
+        local party = (i / 6):floor() + 1
+		local key = {'p%i', 'a1%i', 'a2%i'}[party]:format(i % 6)
+		local function get_party_members(local_members)
+			local members = T{}
+			for k, v in pairs(windower.ffxi.get_party()) do
+				if type(v) == 'table' then
+					if local_members:contains(v.name) then
+						members:append(v.name)
+					end
+				end
+			end
+			
+			return members
+		end
+		
+		if id == windower.ffxi.get_player().id then
+			party_index = members[party]
+			--party_index = members[party]
+		return members[party]
+		end
+
+		if id > 0 then
+			if not members[party] then members[party] = T{} end
+
+			members[party]:insert(id)
+		end
+	end
+end)
+
+windower.register_event('addon command', function(...)
+    if not windower.ffxi.get_info().logged_in then
+        return
+    end
+
+	local zone = windower.ffxi.get_info()['zone']
+	local party = windower.ffxi.get_party()
+	
+	local commands = T{...}
+	local args = {...}
+	--local cmds = {...}
+	--local args = {...}
+	
+	
+	--local zone = windower.ffxi.get_info().zone
+	--local party = windower.ffxi.get_party()		
+	if command == 'd2ga' or 'd2all' then
+		for i = 1,5 do
+		--for i = 1,5 do
+			local members = party['p' ..i]
+			if party['p'..i] ~= nil then
+				if party[idx] and party[idx].name:lower() == player then
+					repeat
+					local party_index = i - 1
+					until i == 1
+						for id in members[party_index]:it() do
+							windower.send_command(string.format('input /ma "Warp II" %s', id))
+						end
+				end	--until i == 0
+							
+					return party_index
+
+			elseif party['p'..i] == 0 then
+				for id in members[party_index]:it() do
+				--if member.id == player.id then return true end
+				--local me = get_member(player.id, player.name, true)
+					windower.send_command(string.format('input /ma "Warp" %s', id))
+					--windower.send_command(string.format('input /ma "Warp" <me>'))
+				end
+				return false
+			end
+		end
+	elseif command == 'debug' then
+		table.print(events.registered)
+	end
+end)
+_addon.name = 'warpspeed'
+_addon.author = 'Latravant (Ragnarok)'
+_addon.command = 'w9'
+
+local packets = require('packets')
+local tables = require('tables')
+local strings = require('strings')
+local res = require('resources')
+
+local GROUP_TBL = L{
+    {ctype='unsigned int',      label='ID',                 fn=id},
+    {ctype='unsigned short',    label='Index',              fn=index},
+    {ctype='bit[2]',            label='Party Number'},
+    {ctype='bit[1]',            label='Party Leader',       fn=bool},
+    {ctype='bit[1]',            label='Alliance Leader',    fn=bool},
+    {ctype='bit[1]',            label='PartyR Flag'},
+    {ctype='bit[1]',            label='AllianceR Flag'},
+    {ctype='bit[1]',            label='MasterComFlg'},
+    {ctype='bit[1]',            label='SubMasterComFlg'},
+    {ctype='unsigned char',     label='padding00'},
+    {ctype='unsigned short',    label='Zone',               fn=zone},
+    {ctype='unsigned short',    label='_unknown2'},
+}
+
+packets.raw_fields.incoming[0x0C8] = L{
+    {ctype='unsigned char',     label='_unknown1'},                                 -- 04
+    {ctype='data[3]',           label='_junk1'},                                    -- 05
+    {ref=GROUP_TBL,             count=18},                                          -- 08
+    {ctype='data[0x18]',        label='_unknown3'},                                 -- E0   Always 0?
+}
+
+local members = {}
+local party_index = nil
+
+windower.register_event('incoming chunk', function(id, original)
+	if id ~= 0x0c8 then return false end
+	local parsed = packets.parse('incoming', original)
+
+	members = T{}
+  
+  -- Build a set of current player IDs.
+	for i= 1,18 do
+		local id = parsed[string.format("ID %d", i)]
+		local party = parsed[string.format("Party Index %s", i)]
+
+		if id == windower.ffxi.get_player().id then
+			party_index = party
+			--party_index = members[party]
+		end
+
+		if id > 0 then
+			if not members[party] then members[party] = T{} return T end
+
+			members[party]:insert(id)
+		end
+		return party
+	end
+end)
+
+local w9 = {}
+
+windower.register_event('addon command', function(cmds, ...)
+    if not windower.ffxi.get_info().logged_in then
+        return
+    end
+
+	local zone = windower.ffxi.get_info()['zone']
+	local party = windower.ffxi.get_party()
+	
+	local cmds = {d2ga, d2all}
+	local args = { }
+	--local cmds = {...}
+	--local args = {...}
+	
+	for _,v in ipairs(cmds) do
+		if S{'w9'}:contains(v:lower()) then
+			--local zone = windower.ffxi.get_info().zone
+			--local party = windower.ffxi.get_party()		
+			if command == 'd2ga' or 'd2all' then
+				for i = 0,5 do
+				--for i = 1,5 do
+					local members = party['p' ..i]
+					if party['p'..i] ~= nil then
+					local party_index = i - 1
+						repeat
+							for id in members[party_index]:it() do
+								windower.send_command(string.format('input /ma "Warp II" %s', id))
+							end
+						until i == 1
+						--until i == 0
+							
+						return party_index
+
+					elseif party['p'..i] == 0 then
+						for id in members[party_index]:it() do
+						--if member.id == player.id then return true end
+						--local me = get_member(player.id, player.name, true)
+							windower.send_command(string.format('input /ma "Warp" %s', id))
+							--windower.send_command(string.format('input /ma "Warp" <me>'))
+						end
+						return false
+					end
+				end
+			end
+		end
+	end
+end)
+
+_addon.name = 'warpspeed'
+_addon.author = 'Latravant (Ragnarok)'
+_addon.command = 'w9'
+
+local packets = require('packets')
+local tables = require('tables')
+local strings = require('strings')
+local res = require('resources')
+
+local GROUP_TBL = L{
+    {ctype='unsigned int',      label='ID',                 fn=id},
+    {ctype='unsigned short',    label='Index',              fn=index},
+    {ctype='bit[2]',            label='Party Number'},
+    {ctype='bit[1]',            label='Party Leader',       fn=bool},
+    {ctype='bit[1]',            label='Alliance Leader',    fn=bool},
+    {ctype='bit[1]',            label='PartyR Flag'},
+    {ctype='bit[1]',            label='AllianceR Flag'},
+    {ctype='bit[1]',            label='MasterComFlg'},
+    {ctype='bit[1]',            label='SubMasterComFlg'},
+    {ctype='unsigned char',     label='padding00'},
+    {ctype='unsigned short',    label='Zone',               fn=zone},
+    {ctype='unsigned short',    label='_unknown2'},
+}
+
+packets.raw_fields.incoming[0x0C8] = L{
+    {ctype='unsigned char',     label='_unknown1'},                                 -- 04
+    {ctype='data[3]',           label='_junk1'},                                    -- 05
+    {ref=GROUP_TBL,             count=18},                                          -- 08
+    {ctype='data[0x18]',        label='_unknown3'},                                 -- E0   Always 0?
+}
+
+local members = {}
+local party_index = nil
+
+windower.register_event('incoming chunk', function(id, original)
+	if id ~= 0x0c8 then return false end
+	local parsed = packets.parse('incoming', original)
+  
+  -- Empty members for new data.
+	members = T{}
+  
+  -- Build a set of current player IDs.
+	for i= 1,18 do
+		local id = parsed[string.format("ID %d", i)]
+		local party = parsed[string.format("Party Index %s", i)]
+
+		local function get_party_members(local_members)
+			local members = T{}
+			for k, v in pairs(windower.ffxi.get_party()) do
+				if type(v) == 'table' then
+					if local_members:contains(v.name) then
+						members:append(v.name)
+					end
+				end
+			end
+			
+			return members
+		end
+		
+		local player = windower.ffxi.get_player()
+		if player and id == player.id then -----new error here----- attempt to index a nil value
+			party_index = party
+		end
+	
+		if id > 0 then
+			if not members[party] then members[party] = T{} end   -------new error here ----  table index is nil
+			members[party]:insert(id)
+		end
+	end	
+end)
+
+local w9 = {}
+windower.register_event('addon command', function(cmds, ...)
+    if not windower.ffxi.get_info().logged_in then
+        return
+    end
+	
+	local cmds = {...}
+	local args = {...}
+	
+	for _,v in ipairs(cmds) do
+		if S{'w9'}:contains(v:lower()) then
+			local zone = windower.ffxi.get_info().zone
+			local party = windower.ffxi.get_party()
+			if command == 'd2ga' then
+				for i = 0,5 do
+					local members = party['p' ..i]
+					if party['p'..i] ~= nil then
+						return function()
+						repeat
+							local party_index = i - 1
+							for id in members[party_index]:it() do
+								windower.send_command(string.format('input /ma "Warp II" %s', id))
+							end
+							until i == 0
+							return
+						end
+					
+					elseif party['p'..i] == 0 then
+						windower.send_command(string.format('input /ma "Warp" %s', id))
+					end
+				end
+			end
+		end
+	end
+end)
+
+--[[_addon.name = 'warpspeed'
+_addon.author = 'Latravant (Ragnarok)'
+_addon.command = 'w9'
+_addon.language = 'English'
+
+local packets = require('packets')
+local tables = require('tables')
+local strings = require('strings')
+local res = require('resources')
+
+windower.register_event('addon command', function(command, ...)
+    if not windower.ffxi.get_info().logged_in then
+        return
+    end
+	
+	command = command and command:lower()
+	local zone = windower.ffxi.get_info().zone
+	local party = windower.ffxi.get_party()
+
+    if command == 'd2ga' then
+		local party = windower.ffxi.get_party()
+		for i = 0,5 do
+			local members = party['p' ..i]		
+			if party['p' ..i] ~= nil then
+				return function()
+					repeat
+						local party_index = i - 1
+						for id in members[party_index]:it() do
+							windower.send_command(string.format('input /ma "Warp II" %s', id))
+						end
+					until i == 0
+					end
+
+			elseif member.id then
+				if member.id == player.id then return true end
+				local me = get_member(player.id, player.name, true)
+					if party['p' ..i] == 0 then
+						windower.send_command('input /ma "Warp" me')
+					end						
+				end
+			end
+		end
+	end
+end)]]--
+
+
+_addon.name = 'warpspeed'
+_addon.author = 'Latravant (Ragnarok)'
+_addon.command = 'warpall'
+
+require('luau')
+packets = require('packets')
+require('logger')
+require('strings')
+
+res = require('resources')
+
+default = {
+	delay={},
+	spells={warp=L{},warp2=L{}}
+}
+
+local settings = config.load(defaults)
+nexttime = os.clock()
+del = 0
+timers = {warp={},warp2={}}
+
+zone = nil
+
+spell_ids = L{
+    [261] = {id=261,enl="Warp",levels={[4]=17},mp_cost=100},
+    [262] = {id=262,enl="Warp II",levels={[4]=40},mp_cost=150}
+}
+
+function prerender()
+    if not settings.actions then return end
+    local curtime = os.clock()
+    if nexttime + del <= curtime then
+        nexttime = curtime
+        del = 0.1
+        local player = windower.ffxi.get_player()
+			if (player.main_job == 'BLM' or player.sub_job == 'BLM') or player.status > 1 then return true else end
+		local spell_recasts = windower.ffxi.get_spell_recasts()
+			if spell.action_type == 'Magic' and (spell.recast_id or spell.id) then
+		local spell_recasts = windower.ffxi.get_spell_recasts()
+			if spell_recasts[spell.recast_id or spell.id] and spell_recasts[spell.recast_id or spell.id] > 0 then
+				cancel_spell()
+			return
+			end
+		end
+		
+		if settings.spells.warp:length()+settings.spells.warp2:length() ~= 0 then
+		    recast = math.random(settings.recast.buff.min,settings.recast.buff.max)
+		    for key,targets in pairs(settings.buffs) do
+                local spell = get_spell(key)
+                for k,targ in ipairs(targets) do
+                    if targ and spell and spell.levels[player.sub_job_id] and spell_recasts[spell.id] <= 0 and valid_target(targ,20) and player.vitals.mp >= 150 and
+                    (not timers[spell.enl] or not timers[spell.enl][targ] or os.time() - timers[spell.enl][targ]+recast > 0) then
+                        use_MA(spell.enl,targ)
+                    end
+                end
+			end
+		end
+	end
+end	
+
+function get_spell(spell)
+    for k,v in pairs(spell_ids) do
+        if v and v.enl and string.lower(v.enl) == string.lower(spell) then
+            return v
+        end
+    end
+    return nil
+end
+
+function valid_target(targ,dst)
+    for ind,member in pairs(windower.ffxi.get_party()) do
+        if type(member) == 'table' and member.mob and member.mob.name:lower() == targ:lower() and math.sqrt(member.mob.distance) < dst and member.mob.hpp > 0 then
+           return true
+        end
+    end
+    return false
+end
+
+windower.register_event('addon command', function(command,...)
+    command = command and command:lower()
+
+    local args = L{...}
+        if command == 'd2all' then
+			windower.add_to_chat('/p why isn\'t this wokring?')
+			return
+		end
+end)
+
+function set_spell(stype, str)
+	str = stype and str:ucfirst() or str
+	if stype then
+		local set = nil 
+		for k,v in pairs(settings.spell_sets) do
+			if v.name:contains(str) then
+				set = v
+				break
+			end
+		end
+	end	
+end
+
+function get_spell(spell)
+    for k,v in pairs(spell_ids) do
+        if v and v.enl and string.lower(v.enl) == string.lower(spell) then
+            return v
+        end
+    end
+    return nil
+end
+
+function use_MA(str,ta)
+    windower.send_command('input /ma "%s" %s':format(str,ta))
+    del = settings.delay
+end
+
+function load_chunk_event()
+    incoming_chunk = windower.register_event('incoming chunk', check_incoming_chunk)
+    outgoing_chunk = windower.register_event('outgoing chunk', check_outgoing_chunk)
+end
+
+function unload_chunk_event()
+    windower.unregister_event(incoming_chunk)
+    windower.unregister_event(outgoing_chunk)
+end
+
+function loaded()
+	zone = windower.ffxi.get_info().zone
+end
+
+function check_job()
+    local player = windower.ffxi.get_player()
+    if player and player.main_job or player.main_sub_job== 'BLM' then
+        loaded()
+    else
+        unloaded()
+    end
+end
+
+windower.register_event('load', function()
+    windower.send_command('alias warpall lua c d2all')
+end)
+
+windower.register_event('unload', function()
+    windower.send_command('unalias warpall')
+end)
+
+for id in members:it() do
+  windower.send_command(string.format('ma "Warp II" %s', id))
+end
+local members = T{}
+windower.register_event('incoming chunk', function(id, original)
+  if id ~= 0x0c8 then return false
+  local parsed = packets.parse('incoming', original)
+  
+  -- Empty Members for new data.
+  members = T{}
+  
+  -- Build a set of current player IDs.
+  for i=1, 18 do
+    local id = parsed[string.format("ID %d", i)]
+    if id > 0 then
+      members:insert(id)
+    end
+  end
+end)
+
+--[[function check_incoming_chunk(id,original,modified,injected,blocked)
+    -- Check if the incoming packet is an Action message 
+    if id == 0x00C8 then
+		local target_index_value = windower.ffxi.get_player().target_index -- Example of getting the current target's index
+		
+		if not player or not player.target_index then
+			return
+		end
+	end
+end
+
+windower.register_event('addon command', function(command, ...)
+    if not windower.ffxi.get_info().logged_in then
+        return
+    end
+	
+	local command = command and command:lower()
+	if command == 'd2all' then
+	
+	local zone = windower.ffxi.get_info().zone
+	local party = windower.ffxi.get_party()
+    for i = 1,5 do --everyone except for yourself(0)
+		local idx = 'p'..i
+		if party["p"..i] ~= nil then
+			if party[idx] and party[idx].name:lower() == player then
+				repeat
+				windower.chat.input('input /ma "Warp ii"' ..member.name)
+				local idx = i - 1
+				until i == 0
+					if i == 0 then
+						windower.send_command('input /ma "Warp" <me>')
+					end	
+				end
+			end
+		end
+	end
+end)
+
+//coroutine.sleep(time)--
+--]]
+
+_addon.name = 'warpspeed'
+_addon.author = 'Latravant (Ragnarok)'
+_addon.command = ('w9')
+
+local packets = require('packets')
+local tables = require('tables')
+local strings = require('strings')
+
+local GROUP_TBL = L{
+    {ctype='unsigned int',      label='ID',                 fn=id},
+    {ctype='unsigned short',    label='Index',              fn=index},
+    {ctype='bit[2]',            label='Party Number'},
+    {ctype='bit[1]',            label='Party Leader',       fn=bool},
+    {ctype='bit[1]',            label='Alliance Leader',    fn=bool},
+    {ctype='bit[1]',            label='PartyR Flag'},
+    {ctype='bit[1]',            label='AllianceR Flag'},
+    {ctype='bit[1]',            label='MasterComFlg'},
+    {ctype='bit[1]',            label='SubMasterComFlg'},
+    {ctype='unsigned char',     label='padding00'},
+    {ctype='unsigned short',    label='Zone',               fn=zone},
+    {ctype='unsigned short',    label='_unknown2'},
+}
+
+packets.raw_fields.incoming[0x0C8] = L{
+    {ctype='unsigned char',     label='_unknown1'},                                 -- 04
+    {ctype='data[3]',           label='_junk1'},                                    -- 05
+    {ref=GROUP_TBL,             count=18},                                          -- 08
+    {ctype='data[0x18]',        label='_unknown3'},                                 -- E0   Always 0?
+}
+
+local members = {}
+local party_index = nil
+
+windower.register_event('incoming chunk', function(id, original)
+	if id ~= 0x0c8 then return false end
+	local parsed = packets.parse('incoming', original)
+  
+  -- Empty Members for new data.
+	members = T{}
+  
+  -- Build a set of current player IDs.
+	for i=1, 18 do
+		local id = parsed[string.format("ID %d", i)]
+		local party = parsed[string.format("Party Index %s", i)]
+
+		if id == windower.ffxi.get_player().id then
+			party_index = party
+		end
+	
+		if id > 0 then
+			if not members[party] then members[party] = T{} end
+			members[party]:insert(id)
+		end
+	end	
+end)
+
+windower.register_event('addon command', function(command,...)
+    if not windower.ffxi.get_info().logged_in then
+        return
+    end
+	
+	local command = ' '
+	
+	local args = L{...}	
+	
+	if command == 'd2all' then
+		local zone = windower.ffxi.get_info().zone
+		local party = windower.ffxi.get_party()
+		local player_name = (windower.ffxi.get_player() or {}).name
+		for i = 1,5 do --everyone except for yourself(0)
+		local members = "p"..i
+			if party["p"..i] ~= nil then
+				repeat
+				local party_index = i - 1
+				until i == 1
+					for id in members[party_index]:it() do
+						windower.send_command(string.format('input /ma "Warp II" %s', id))
+					end
+				end
+			end
+			if party["p"..i] == 0 then
+				windower.send_command('Warp ' ..id)
+			end
+		end
+	end
+end)
+
+_addon.name = 'warpspeed'
+_addon.author = 'Latravant (Ragnarok)'
+_addon.command = ('w9')
+
+require('logger')
+require('pack')
+local res = require('resources')
+
+local active = false
+local queue = {}
+
+local verbose = false
+
+function dbg() table.vprint(queue) end
+
+function cmd(str)
+    if str:sub(1,1) == '/' then
+        windower.chat.input(str)
+    else
+        windower.send_command(str)
+    end
+end	
+
+local argdict = {
+	ret = {'retrace'},
+	retall = {'retrace'},
+	d2 = {'warp 2'},
+	d2all = {'warp 2','warp'},
+	mea = {'teleport-mea'},
+	dem = {'teleport-dem'},
+	holla = {'teleport-holla'},
+	vahzl = {'teleport-vahzl'},
+	altepa = {'teleport-altepa'},
+	yhoat = {'teleport-yhoat'},
+	jugner = {'recall-jugner'},
+	meriph = {'recall-meriph'},
+	pash = {'recall-pash'},
+}
+-- can change priorities here by simply reordering the lines.
+-- TODO: configurable priorities.
+local actions = {
+    ["warp II"] = {
+        {job='BLM',type='ma',name='Warp II',level=40,command='/ma "warp ii" <me>'}},	
+    warp = {
+        {job='BLM',type='ma',name='Warp',level=17,command='/ma warp <me>'}},
+    retrace = {
+        {job='BLM',type='ma',name='Retrace',level=55,command='/ma retrace <me>'}},
+	["Teleport-mea"] = {}
+	["Teleport-Dem"] = {}
+	["Teleport-Holla"] = {}
+	["Teleport-Vahzl"] = {}
+	["Teleport-Altepa"] = {}
+	["Teleport-Yhoat"] = {}
+	["Recall-Jugner"] = {}
+	["Recall-Meriph"] = {}
+	["Recall-Pash"] = {}
+}
+
+local members = {}
+local party_index = nil
+
+function queue_action(...)
+    queue[#queue+1] = ...
+    active = true
+end
+
+windower.register_event('incoming chunk', function(id, original)
+	if id ~= 0x0c8 then return false end
+	local parsed = packets.parse('incoming', original)
+  
+  -- Empty Members for new data.
+	members = T{}
+  
+  -- Build a set of current player IDs.
+	for i=1, 18 do
+		local id = parsed[string.format("ID %d", i)]
+		local party = parsed[string.format("Party Index %s", i)]
+
+		if id == windower.ffxi.get_player().id then
+			party_index = party
+		end
+	
+		if id > 0 then
+			if not members[party] then members[party] = T{} end
+			members[party]:insert(id)
+		end
+	end	
+end)
+
+function work(job)
+    local player = windower.ffxi.get_player()
+    if verbose then log(player.main_job,player.main_job_level,player.sub_job,player.sub_job_level) end
+    
+    for _,task in ipairs(job) do
+        if actions[task] then
+            if verbose then log('task:',task) end
+            local result = false
+            for _,action in ipairs(actions[task]) do
+                if (player.main_job == action.job and player.main_job_level >= action.level) or
+                    (player.sub_job == action.job and player.sub_job_level >= action.level) then
+                    local recasts local recast_id
+					if action.type == 'ma' then
+                        local spell_id = res.spells:with('name',action.name).id
+                        local spells = windower.ffxi.get_spells()
+                        recasts = windower.ffxi.get_spell_recasts()
+                        recast_id = spells[spell_id] and spell_id
+                    end
+                    if recasts[recast_id] == 0 then
+                        result = table.copy(action)
+                    end
+                    break
+                end
+            end
+            if result then
+                queue_action(table.update(result,{['task']=task:ucfirst()})) -- 3am hack that I will certainly never ever regret
+                next_sequence = 0
+            end
+        end
+    end
+end
+
+local midaction = function()
+    local acting = false
+    local last_action = -1
+    local cooldown = false
+    
+    return function(param)
+        if param ~= nil then
+            acting = param and true
+            cooldown = type(param) == 'number' and param > 0 and param
+            last_action = os.clock()
+        end
+        if cooldown and os.clock() > (last_action + cooldown) then
+            cooldown = false
+            acting = false
+        end
+
+        return acting
+    end
+end()
+
+windower.register_event('addon command', function(...)
+    if not windower.ffxi.get_info().logged_in then
+        print('Warpspeed: not logged in.')
+        return
+    end
+    
+    local args = {...}
+    
+    local arg = args[1] and args[1]:lower() or 'both'
+    local job     
+    
+    if arg == 'r' then 
+        cmd('lua r warpspeed') 
+        return
+    elseif arg == 'd2all' then
+		local zone = windower.ffxi.get_info().zone
+		local party = windower.ffxi.get_party()
+		local player_name = (windower.ffxi.get_player() or {}).name
+		for i = 1,5 do --everyone except for yourself(0)
+		local members = "p"..i
+			if party["p"..i] ~= nil then
+				repeat
+				local party_index = i - 1
+				until i == 1
+					for id in members[party_index]:it() do
+						windower.send_command(string.format('input /ma "Warp II" %s', id))
+					end
+				end
+			end
+			if party["p"..i] == 0 then
+				windower.send_command('Warp ' ..id)	
+			end
+        return
+    else
+        log(arg:color(64), 'is an invalid command. Performing default action.')
+    end
+        
+    work(job)
+    
+end)
+
+windower.register_event('incoming chunk',function(id,org,mod,inj,blk)
+    if not active then
+        return
+    end
+
+    if id == 0x028 then
+        p = windower.packets.parse_action(org)
+        if p.actor_id ~= windower.ffxi.get_player().id then
+            return
+        end
+        -- this could be much simpler but I like the categorizations
+        if p.category >= 2 and p.category <= 8 then -- finish: ranged atk, WS, spells, items; begin: JAs, WSs,
+            midaction(2.5)
+        elseif p.category == 6 or p.category == 7 or p.category == 14 then -- JA, WS/TP moves, DNC moves
+            midaction(2.5)
+        elseif p.category == 8 or p.category == 9 or p.category == 12 or p.category == 15 then -- spells, items, ranged attacks, run JAs?
+            if p.param == 28787 then
+                midaction(2.5)
+            else
+                midaction(true)
+            end
+        end
+    end
+end)
+
+local moving = false
+windower.register_event('outgoing chunk',function(id,org,mod,inj,blk)
+    if not active then
+        return
+    end
+
+    local seq = org:unpack('H',3)
+    
+    if id == 0x015 then
+        moving = lastlocation ~= mod:sub(5, 16)
+        lastlocation = mod:sub(5, 16)
+        if not next_sequence then 
+            next_sequence = (seq+5)%0x10000 -- 128 packets is about 1 minute. 5 packets is about 2 seconds.
+        end
+    end
+
+	if next_sequence and seq >= next_sequence then
+        if windower.ffxi.get_player().status > 1 or moving or midaction() then
+            return
+        end
+        
+        next_sequence = nil
+        
+        while #queue > 0 do
+            local buffactive = S(windower.ffxi.get_player().buffs):map(function(id) return res.buffs[id].name end)
+
+            local action = table.remove(queue,1)
+            if verbose then
+                table.print(action)
+                log(action.task,buffactive[action.task])
+            end
+            if not buffactive[action.task] then
+                if action.type == 'item' and action.bag > 0 then -- need pull
+                    local inventory = windower.ffxi.get_bag_info(0)
+                    if inventory.count >= inventory.max then
+                        error('Not enough space in inventory to use %s, aborting.':format(action.name))
+                        next_sequence = 0
+                        return
+                    end
+                    local bag = windower.ffxi.get_items(action.bag)
+                    for slot,item in pairs(bag) do
+                        if item.id == action.item_id then
+                            windower.ffxi.get_item(action.bag,slot,1)
+                            table.insert(queue,1,table.update(action,{retry=true,bag=0}))
+                            next_sequence = nil
+                            return
+                        end
+                    end
+                elseif action.name == 'Spectral Jig' and buffactive['Sneak'] then
+                    if action.retry then
+                        error('Cannot cancel Sneak, giving up.')
+                        return
+                    end
+                    log('Sneak active, attempting to cancel the buff...')
+                    cmd('cancel sneak')
+                    table.insert(queue,1,table.update(action,{retry=true}))
+                    return
+                end
+                log('using %s.':format(action.name))
+                cmd(action.command)
+                return
+            end
+        end
+        
+        active = false
+        
+    end
+    
+end)
+
+windower.register_event('zone change','job change','logout','unload',function()
+    active = false
+    queue = {}
+end)
+
+from elii -
+Since actions has the name, using the key seems unnecessary. I guess it really isn't a big deal at the end of the day, but you could make them get called directly, or map them to just call actions[1] for warp II. It's really all going to come down to preference I think here. If I had to say what I would want the flow to be.
+ToDo:
+Command to do action.
+Loop members and queue the action.
+After queue is built, check if length() > 0 then start performing.
+Wait for incoming actions.
+  - If success, remove from queue and schedule the next attempt based on the recast_id.
+  - if failure, attemp "n" times with a "x" delay until it is removed from the queue.
+Repeat until the queue is empty.

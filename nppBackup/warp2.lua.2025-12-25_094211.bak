@@ -1,0 +1,86 @@
+_addon.command = 'd2all'
+
+windower.register_event('d2all', function(...)
+	local args = {...}
+	
+	local index = 1
+	
+	local spell_recasts = windower.ffxi.get_spell_recasts()
+	
+    while args[index] ~= 'send' do 
+		names[#names+1] = args[index]
+		index = index + 1
+	end
+	
+    index = index + 1
+	
+	local words = {}
+	
+	while args[index] ~= nil do
+		words[#words+1] = args[index]
+		index = index + 1
+	end
+
+    local message = table.concat(words, ' ')
+
+	local command_msg = ''
+	for i = 1, #names do
+		command_msg = command_msg..'input /tell '..names[i]..' '..message
+        if i < #names then
+		command_msg = command_msg..'; wait 2; '
+		end
+	end
+	windower.send_command(command_msg)
+end)
+	
+	
+		if windower.ffxi.get_spell_recasts()[spell.id]  < spell_latency then
+			windower.chat.input('/ma "Warp ii" <p5>')			
+		elseif spell_recasts[339] < spell_latency 
+		then
+			windower.chat.input('/ma "Utsusemi: Ni" <me>')
+		elseif spell_recasts[338] < spell_latency then
+			windower.chat.input('/ma "Utsusemi: Ichi" <me>')
+		else
+			add_to_chat(123,"All Utsusemi on cooldown.")
+		end
+	end
+end)
+_addon.command = 'd2all'
+
+windower.register_event('addon command', function(...)
+    local spell_recasts = windower.ffxi.get_spell_recasts()
+	if (player.main_job == 'BLM' or player.sub_job == 'BLM') and windower.ffxi.get_spell_recasts() < spell_latency then
+		
+	local args = {...}
+
+    local index = 1
+    local names = {}
+    while args[index] ~= 'send' do
+	names[#names+1] = args[index]
+	index = index + 1
+	end
+    index = index + 1
+	local words = {}
+	while args[index] ~= nil do
+		words[#words+1] = args[index]
+		index = index + 1
+	end
+    local message = table.concat(words, ' ')
+	local command_msg = ''
+	for i = 1, #names do
+		windower.chat.input('/ma "Warp ii" '..names[i]) return true
+			if i < #names then
+		command_msg = command_msg..'; wait 2; '
+		end
+	end
+	windower.send_command(command_msg) 
+end)
+
+windower.register_event('load', function()
+    windower.send_command('alias d2all lua c d2all')
+end)
+
+windower.register_event('unload', function()
+    windower.send_command('unalias d2all')
+end)

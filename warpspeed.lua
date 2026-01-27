@@ -111,7 +111,6 @@ windower.register_event('addon command', function(...)
 	local player = windower.ffxi.get_player()
 	
 	if not player then
-		return
 	end
 
 	if command:first() == 'scottie' then
@@ -121,13 +120,15 @@ windower.register_event('addon command', function(...)
 				queue:insert({ id = id, input = string.format('input /ma "Warp II" %s', id) })
 			end
 		    do_actions()
+			
 		end
 
-		do -- Queue the action on ourselves now.
+[[		do -- Queue the action on ourselves now.
 			queue:insert({ id=player.id, input=string.format('input /ma "Warp" %s', player.id) })
 
 		end
-		do_actions()
+		do_actions]]
+		return 
     end
 end)
 

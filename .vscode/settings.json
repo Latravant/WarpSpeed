@@ -1,0 +1,5 @@
+{
+    "debug.onTaskErrors": "showErrors",
+    "notebook.output.minimalErrorRendering": true,
+    "markdown.occurrencesHighlight.enabled": true
+}

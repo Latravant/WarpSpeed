@@ -120,7 +120,8 @@ windower.register_event('addon command', function(...)
 			if id ~= player.id then -- Let's wait to add ourself.
 				queue:insert({ id = id, input = string.format('input /ma "Warp II" %s', id) })
 			end
-		
+		    do_actions()
+		end
 
 		do -- Queue the action on ourselves now.
 			queue:insert({ id=player.id, input=string.format('input /ma "Warp" %s', player.id) })

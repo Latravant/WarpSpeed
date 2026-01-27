@@ -111,23 +111,22 @@ windower.register_event('addon command', function(...)
 	local player = windower.ffxi.get_player()
 	
 	if not player then
+		return 
 	end
 
 	if command:first() == 'scottie' then
 		
-		for id in members:it() do -- Let's change this to array-like so we can keep order and always cast on other first, then add our id at the end.
-			if id ~= player.id then -- Let's wait to add ourself.
-				queue:insert({ id = id, input = string.format('input /ma "Warp II" %s', id) })
+		while queue:length() > 0 do
+			for id in members:it() do -- Let's change this to array-like so we can keep order and always cast on other first, then add our id at the end.
+				if id ~= player.id then -- Let's wait to add ourself.
+					queue:insert({ id = id, input = string.format('input /ma "Warp II" %s', id) })
+				end
 			end
 		    do_actions()
+			print(members)
 			
 		end
 
-[[		do -- Queue the action on ourselves now.
-			queue:insert({ id=player.id, input=string.format('input /ma "Warp" %s', player.id) })
-
-		end
-		do_actions]]
 		return 
     end
 end)

@@ -1,0 +1,22 @@
+Warpspeed
+Written by eLii for Latravant of Ragnarok
+
+I wanted an addon that would cast warp 2 on all of my multiboxing characters so if i had to go afk because of a RL event, 
+I could just type in the command and the addon would take care of the rest, without me coming back to half my party dead in 
+the world, the other half still alive in the city because my warp macro didn't execute properly for whatever reason. Plus, I
+have like 23 characters across 6 accounts so there may be alot of characters that can cast warp 2, but their cast/recast timers
+are all over the place and my send commands were screwing up even worse than the macro's were. So I started to write a addon
+for the first time using snippets from other peoples addons and suggestions from google. When I went to the Windower team for 
+help, they instantly knew where I got my original help from, without me saying. "This looks like Chrome coding." So I asked for 
+some help, and a few people responded, but unfortunately, almost all of it made zero sense to me. So I decided to just stick with 
+one of the people who responded, eLii, who was very patient with me and explained things in a way I could understand. But I still 
+fucked up. So 90% of this code is eLii's work, I just told him what I wanted it to do, and he made it happen. So all credit goes to
+him. I'd say about 5% of the code is mine, the other 5% is from the bot on VSCode that suggests code completions.
+
+I hope it helps other multiboxers out there who may find it, and want a simple way to cast warp 2 on all their characters.
+
+Commands:
+warpspeed, ws, bmu
+
+Arguments:
+scottie - Casts Warp II on all party members who can receive it.

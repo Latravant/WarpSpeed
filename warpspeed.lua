@@ -1,6 +1,6 @@
 _addon.name = 'warpspeed'
 _addon.author = 'eLii'
-_addon.command = 'bmu'
+_addon.commands = {'warpspeed','ws','bmu'}
 
 require('luau')
 require('logger')
@@ -50,10 +50,12 @@ local do_actions	= function(b)
 	
 	if target then
 		windower.send_command(action.input)
+	else
+
 	end
 end
 
-local members = T{}
+
 windower.register_event('incoming chunk',function(id, original)
 	if not S{0x0C8,0x028}:contains(id) then return false end
 
@@ -65,24 +67,28 @@ windower.register_event('incoming chunk',function(id, original)
 		local category	 = parsed['Category']
 		local param		 = parsed['Param']
 
+		
 		busy = true
 		
 		if S{4,5}:contains(category) then
-
-			if category == 4 and res.spells[param] and res.spells[param].cast_delay then -- This is spells
-				local recast = windower.ffxi.get_spell_recasts()[res.spells[param].recast_id]
-				do_actions:schedule(res.spells[param].cast_delay + recast + 1)
-				return 1
+			
+			local delay = 1 -- Default delay
+			
+			if category == 4 and res.spells[param] then -- This is spells
+				if res.spells[param].cast_delay then
+					local recast = windower.ffxi.get_spell_recasts()[res.spells[param].recast_id]
+					delay = res.spells[param].cast_delay + recast + 1
+				end
 				
 			elseif res.items[param] and res.items[param].cast_delay then
-				do_actions:schedule(res.items[param].cast_delay + 1)
-				return 2
-				
+				delay = res.items[param].cast_delay + 1
 			end
 			
+			print("Scheduling do_actions in", delay, "seconds")
+			do_actions:schedule(delay)
+			return 1
+			
 		elseif param == 28787 then
-
-			-- The action failed. We need to handle what to do if it fails and the queue is still has actions.
 			coroutine.schedule(function() busy = false end, 2)
 
 		end
@@ -104,27 +110,49 @@ windower.register_event('incoming chunk',function(id, original)
 
 end)
 
-windower.register_event('addon command', function(...)
-    if not windower.ffxi.get_info().logged_in then return end
-	local command = T{...}
-	local members = S{}
-	local player = windower.ffxi.get_player()
-	
-
-	if command:first() == 'scottie' then
-		
-		while members > 0 do
-			for id in members:it() do -- Let's change this to array-like so we can keep order and always cast on other first, then add our id at the end.
-				if id ~= player.id then -- Let's wait to add ourself.
-					queue:insert({ id = id, input = string.format('input /ma "Warp II" %s', id) })
-				end
-			end
-		    do_actions()
-			print(members)	
-		end
-
-		return 
+function get_party_info()
+    local party = windower.ffxi.get_party()
+    local result = {}
+    if type(party) ~= "table" then
+        return result
     end
+    
+	for i = 0, 5 do
+        local member = party['p' .. i]
+        if type(member) == "table" then
+            if member.mob and member.mob.id then
+                if member.mob.id ~= "" then
+                    table.insert(result, member.mob.id)
+                end
+            end
+        end
+    end
+
+	return result
+end
+
+windower.register_event('addon command', function(...)
+	if not windower.ffxi.get_info().logged_in then return end
+	local command = {...}
+	local player = windower.ffxi.get_player()
+
+
+	if command[1] == 'scottie' then
+		local party_info = get_party_info()
+		for _,id in ipairs(party_info) do
+			if id ~= player.id then 
+				queue:insert({ id = id, input = string.format('input /ma "Warp II" %s', id) })
+			end
+		end	
+		queue:insert({ id=player.id, input=string.format('input /ma "Warp" %s', player.id) })
+	
+	elseif command[1] == 'help' then
+		print('WarpSpeed: Valid commands are:')
+        print(' Shortcuts: warpspeed, ws, bmu')
+		print(' Warp/WarpII party: scottie')
+	end	
+	
+	do_actions()	
 end)
 
 windower.register_event('login','load',function()

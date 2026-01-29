@@ -10,13 +10,16 @@ for the first time using snippets from other peoples addons and suggestions from
 help, they instantly knew where I got my original help from, without me saying. "This looks like Chrome coding." So I asked for 
 some help, and a few people responded, but unfortunately, almost all of it made zero sense to me. So I decided to just stick with 
 one of the people who responded, eLii, who was very patient with me and explained things in a way I could understand. But I still 
-fucked up. So 90% of this code is eLii's work, I just told him what I wanted it to do, and he made it happen. So all credit goes to
-him. I'd say about 5% of the code is mine, the other 5% is from the bot on VSCode that suggests code completions.
+fucked up. So many thanks go to eLii, randomnick and Zirk, for mentoring me while I figured out how to write an addon. Many thanks. 
+/bow.
+/kneel.
 
 I hope it helps other multiboxers out there who may find it, and want a simple way to cast warp 2 on all their characters.
+/cheer.
 
-Commands:
-warpspeed, ws, bmu
 
-Arguments:
+Commands: -- //warpspeed arg1
+warpspeed, ws, bmu 
+
+Arguments: -- //warpspeed scottie
 scottie - Casts Warp II on all party members who can receive it.

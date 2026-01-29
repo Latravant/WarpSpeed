@@ -1,5 +1,5 @@
-_addon.name = 'warpspeed'
-_addon.author = 'eLii'
+_addon.name = 'WarpSpeed'
+_addon.author = 'Latravant of Ragnarok'
 _addon.commands = {'warpspeed','ws','bmu'}
 
 require('luau')

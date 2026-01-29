@@ -84,7 +84,6 @@ windower.register_event('incoming chunk',function(id, original)
 				delay = res.items[param].cast_delay + 1
 			end
 			
-			print("Scheduling do_actions in", delay, "seconds")
 			do_actions:schedule(delay)
 			return 1
 			
